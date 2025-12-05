@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+    <title>凯德盟 - 专业涉外知识产权服务</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        accent: '#1d4ed8',
+                        muted: '#6b7280',
+                        light: '#f8fafc',
+                        dark: '#1e293b'
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.6s ease-in-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'pulse-light': 'pulse 2s infinite',
+                        'scale-in': 'scaleIn 0.3s ease-out'
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        scaleIn: { '0%': { transform: 'scale(0.9)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto { content-visibility: auto; }
+            .backdrop-blur-md { backdrop-filter: blur(12px); }
+            .nav-shadow { box-shadow: 0 4px 20px rgba(20,25,40,0.08); }
+            .card-hover { transition: all 0.3s ease; }
+            .card-hover:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+            /* 优化视频尺寸 */
+            .video-container {
+                aspect-ratio: 4/3; /* 调整为更紧凑的比例（原16/9） */
+                border-radius: 0.75rem;
+                overflow: hidden;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            }
+            /* 图片放大弹窗 */
+            .img-modal {
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.8);
+                z-index: 100;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+            }
+            .img-modal.active {
+                opacity: 1;
+                visibility: visible;
+                animation: scaleIn 0.3s ease-out;
+            }
+            .img-modal-content {
+                max-width: 90%;
+                max-height: 80vh;
+                border-radius: 0.5rem;
+            }
+            /* 滚动容器 */
+            .scroll-container {
+                overflow-x: auto;
+                scroll-behavior: smooth;
+                scrollbar-width: thin;
+                scrollbar-color: #2563eb #f1f5f9;
+            }
+            .scroll-container::-webkit-scrollbar {
+                height: 6px;
+            }
+            .scroll-container::-webkit-scrollbar-track {
+                background: #f1f5f9;
+                border-radius: 10px;
+            }
+            .scroll-container::-webkit-scrollbar-thumb {
+                background-color: #2563eb;
+                border-radius: 10px;
+            }
+            .scroll-indicator {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: white/80;
+                backdrop-filter: blur(4px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                cursor: pointer;
+                z-index: 10;
+                transition: all 0.2s ease;
+            }
+            .scroll-indicator:hover {
+                background: white;
+                transform: translateY(-50%) scale(1.1);
+            }
+            .scroll-indicator.left { left: 8px; }
+            .scroll-indicator.right { right: 8px; }
+            /* 常见问题折叠面板 */
+            .faq-item {
+                border: 1px solid #e2e8f0;
+                border-radius: 0.5rem;
+                margin-bottom: 0.75rem;
+                overflow: hidden;
+            }
+            .faq-question {
+                padding: 1rem 1.25rem;
+                background: white;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                cursor: pointer;
+                font-weight: 600;
+            }
+            .faq-answer {
+                padding: 0 1.25rem;
+                background: #f8fafc;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease, padding 0.3s ease;
+            }
+            .faq-answer.active {
+                padding: 1.25rem;
+                max-height: 500px;
+            }
+        }
+        * { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-eef3ff to-f9fbff text-dark antialiased">
+    <!-- 导航栏（新增“常见问题”） -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md nav-shadow py-3 px-4 md:px-8">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <a href="#home" class="flex items-center gap-3">
+                <img src="公司介绍/logo.png" alt="凯德盟Logo" class="h-12 w-auto rounded-lg" />
+                <div>
+                    <div class="font-bold text-primary text-lg md:text-xl">凯德盟（CADMON）</div>
+                    <div class="text-xs text-muted">专业涉外知识产权服务</div>
+                </div>
+            </a>
+            <!-- 桌面端导航 -->
+            <div class="hidden md:flex items-center gap-6">
+                <a href="#home" class="nav-link font-semibold text-primary border-b-2 border-primary">首页</a>
+                <a href="#query" class="nav-link font-semibold hover:text-primary">全球商标,专利状态</a>
+                <a href="#articles" class="nav-link font-semibold hover:text-primary">个人文章展示</a>
+                <a href="#services" class="nav-link font-semibold hover:text-primary">服务</a>
+                <a href="#faq" class="nav-link font-semibold hover:text-primary">常见问题</a>
+                <a href="#about" class="nav-link font-semibold hover:text-primary">关于我</a>
+            </div>
+            <!-- 移动端菜单按钮 -->
+            <button id="menuBtn" class="md:hidden text-dark text-xl">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
+        <!-- 移动端导航菜单 -->
+        <div id="mobileMenu" class="md:hidden hidden bg-white absolute top-full left-0 right-0 py-4 px-6 shadow-lg animate-fade-in">
+            <div class="flex flex-col gap-4">
+                <a href="#home" class="mobile-nav-link font-semibold text-primary py-2 border-b border-gray-100">首页</a>
+                <a href="#query" class="mobile-nav-link font-semibold hover:text-primary py-2 border-b border-gray-100">全球商标,专利状态</a>
+                <a href="#articles" class="mobile-nav-link font-semibold hover:text-primary py-2 border-b border-gray-100">个人文章展示</a>
+                <a href="#services" class="mobile-nav-link font-semibold hover:text-primary py-2 border-b border-gray-100">服务</a>
+                <a href="#faq" class="mobile-nav-link font-semibold hover:text-primary py-2 border-b border-gray-100">常见问题</a>
+                <a href="#about" class="mobile-nav-link font-semibold hover:text-primary py-2">关于我</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 图片放大弹窗（新增） -->
+    <div id="imgModal" class="img-modal">
+        <img id="modalImg" class="img-modal-content" src="" alt="放大图片">
+    </div>
+
+    <!-- 主内容区 -->
+    <main class="pt-24 pb-16">
+        <!-- 1. 首页区块（调整视频尺寸） -->
+        <section id="home" class="content-section active max-w-7xl mx-auto px-4 md:px-8 mb-16 animate-fade-in">
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-8">
+                <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-primary mb-6 text-center">凯德盟 - 15年专业涉外知识产权服务</h2>
+                
+
+                <!-- 协会资质标识 -->
+                <!-- 将原有的bg-blue-50修改为需要的背景色，例如 -->
+                <div class="bg-primary/10 rounded-xl p-4 mb-8 text-center animate-slide-up">
+                    <p class="text-lg font-semibold text-accent">国际商标协会常务副会长单位</p>
+                    <p class="mt-2 text-muted">最有实力、最有名望、最有成效、最有创造力、最有影响力、最值得信赖的知识产权整体方案解决机构</p>
+                </div>
+
+
+                <!-- 公司介绍 -->
+                <div class="grid md:grid-cols-2 gap-8 mb-8">
+                    <div class="animate-slide-up space-y-4">
+                        <p class="text-lg leading-relaxed">
+                            凯德盟是专业从事涉外知识产权的大型涉外公司，深耕行业15年，服务客户近60000+，注册资金1188万，服务过奥康、公牛、美的、香飘飘等著名企业，下证率高达97%。
+                        </p>
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <h3 class="font-bold text-xl mb-3 text-accent">公司起源</h3>
+                            <p class="leading-relaxed">
+                                凯德盟总部起源于英国，大陆总部2010年成立于深圳，专注国际商标注册、专利版权申请、商标买卖转让、国际IP诉讼等，致力于为中国企业提供全球知识产权战略布局。
+                            </p>
+                        </div>
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <h3 class="font-bold text-xl mb-3 text-accent">实力雄厚</h3>
+                            <p class="leading-relaxed">
+                                线下分点超12家，服务团队近300人，覆盖一二线重要城市，是国际商标注册行业的代表典范。
+                            </p>
+                        </div>
+                    </div>
+                    <div class="animate-slide-up delay-100">
+                        <!-- 公司图片滑动区（支持点击放大） -->
+                        <div class="relative mb-3">
+                            <div class="scroll-indicator left" onclick="scrollContainer('companyImages', -300)">
+                                <i class="fa fa-chevron-left text-primary"></i>
+                            </div>
+                            <div class="scroll-indicator right" onclick="scrollContainer('companyImages', 300)">
+                                <i class="fa fa-chevron-right text-primary"></i>
+                            </div>
+                            <div id="companyImages" class="scroll-container pb-2">
+                                <div class="flex gap-3 min-w-max">
+                                    <!-- 点击图片触发放大 -->
+                                    <img src="公司介绍/1.jpg" alt="公司介绍1" class="rounded-lg w-64 h-48 object-cover card-hover cursor-zoom" onclick="openImgModal(this.src)" />
+                                    <img src="公司介绍/2.jpg" alt="公司介绍2" class="rounded-lg w-64 h-48 object-cover card-hover cursor-zoom" onclick="openImgModal(this.src)" />
+                                    <img src="公司介绍/3.jpg" alt="公司介绍3" class="rounded-lg w-64 h-48 object-cover card-hover cursor-zoom" onclick="openImgModal(this.src)" />
+                                    <img src="公司介绍/4.jpg" alt="公司介绍4" class="rounded-lg w-64 h-48 object-cover card-hover cursor-zoom" onclick="openImgModal(this.src)" />
+                                    <img src="公司介绍/5.jpg" alt="公司介绍5" class="rounded-lg w-64 h-48 object-cover card-hover cursor-zoom" onclick="openImgModal(this.src)" />
+                                    <img src="公司介绍/6.jpg" alt="公司介绍6" class="rounded-lg w-64 h-48 object-cover card-hover cursor-zoom" onclick="openImgModal(this.src)" />
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-muted mt-2 text-center animate-pulse-light">→ 滑动或点击箭头查看更多公司介绍图片 ←</p>
+                        <div class="bg-blue-50 rounded-lg p-4 mt-4">
+                            <h4 class="font-bold mb-2 text-lg">核心优势</h4>
+                            <ul class="list-disc list-inside text-base space-y-2">
+                                <li>97%高下证率，10多年行业经验</li>
+                                <li>48小时快速申报，全球一级代理</li>
+                                <li>ISO质量管理体系，全程跟进提醒</li>
+                                <li>全程保密，支持上门考察后付款</li>
+                                <li>专业专利画图团队，通过率更高</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 视频模块（调整尺寸：由16/9改为4/3，更紧凑） -->
+                <div class="mb-8">
+                    <h3 class="font-bold text-xl mb-4 text-accent text-center">案例视频展示</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="video-container card-hover relative" onclick="window.open('你的视频链接2', '_blank')">
+                            <img src="视频封面/2.jpg" alt="公司案例展示" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer">
+                                <i class="fa fa-play-circle text-white text-5xl"></i>
+                            </div>
+                            <div class="mt-2 text-center font-medium">公司案例展示</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 客户反馈 -->
+                <div class="mb-8">
+                    <h3 class="font-bold text-xl mb-6 text-accent text-center">客户真实反馈</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-md p-5 card-hover">
+                            <div class="flex items-center gap-3 mb-3">
+                                <img src="https://picsum.photos/48/48?random=user1" alt="客户头像" class="w-12 h-12 rounded-full object-cover" />
+                                <div>
+                                    <h4 class="font-bold">李女士（跨境电商卖家）</h4>
+                                    <div class="flex text-yellow-400">
+                                        <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-muted leading-relaxed">
+                                "之前自己搞亚马逊品牌备案卡了3个月，找凯德盟后1周就搞定了！Yuki老师特别专业，把我资料里的问题都提前指出来了，效率太高了！"
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-5 card-hover">
+                            <div class="flex items-center gap-3 mb-3">
+                                <img src="https://picsum.photos/48/48?random=user2" alt="客户头像" class="w-12 h-12 rounded-full object-cover" />
+                                <div>
+                                    <h4 class="font-bold">王先生（品牌方）</h4>
+                                    <div class="flex text-yellow-400">
+                                        <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-half-o"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-muted leading-relaxed">
+                                "我们公司的美国商标是找凯德盟注册的，下证速度比预期快了2个月，而且中间遇到审查意见，他们直接帮我们准备了答辩材料，省了不少心。"
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-5 card-hover">
+                            <div class="flex items-center gap-3 mb-3">
+                                <img src="https://picsum.photos/48/48?random=user3" alt="客户头像" class="w-12 h-12 rounded-full object-cover" />
+                                <div>
+                                    <h4 class="font-bold">张总（外贸企业）</h4>
+                                    <div class="flex text-yellow-400">
+                                        <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-muted leading-relaxed">
+                                "选凯德盟是因为他们做了15年，比较稳。我们的马德里商标覆盖了12个国家，全程都是专属顾问跟进，每一步都有通知，安全感拉满！"
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-5 card-hover">
+                            <div class="flex items-center gap-3 mb-3">
+                                <img src="https://picsum.photos/48/48?random=user4" alt="客户头像" class="w-12 h-12 rounded-full object-cover" />
+                                <div>
+                                    <h4 class="font-bold">刘女士（SOHO卖家）</h4>
+                                    <div class="flex text-yellow-400">
+                                        <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-muted leading-relaxed">
+                                "一开始担心小卖家没人管，结果凯德盟的服务和大企业一样周到！商标查询是免费的，而且会给详细的通过率分析，不会盲目让你申请，这点特别良心。"
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 全球商标专利查询区块 -->
+        <section id="query" class="content-section max-w-7xl mx-auto px-4 md:px-8 mb-16 animate-fade-in">
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-primary mb-8 text-center">全球商标/专利状态查询</h2>
+                
+                <div class="max-w-2xl mx-auto bg-blue-50 rounded-xl p-6 mb-8">
+                    <form id="queryForm" class="space-y-6">
+                        <div>
+                            <label class="block font-semibold mb-2 text-lg" for="number">商标/专利申请号</label>
+                            <input 
+                                type="text" 
+                                id="number" 
+                                placeholder="例如：9876543（美国）、012345678（欧盟）" 
+                                class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-lg"
+                            >
+                        </div>
+                        
+                        <div>
+                            <label class="block font-semibold mb-2 text-lg" for="country">选择国家/地区</label>
+                            <select 
+                                id="country" 
+                                onchange="showExample()"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-lg"
+                            >
+                                <option value="US">美国 USPTO</option>
+                                <option value="EU">欧盟 EUIPO</option>
+                                <option value="GB">英国 UKIPO</option>
+                                <option value="DE">德国 DPMA</option>
+                                <option value="JP">日本 JPO</option>
+                                <option value="AU">澳大利亚 IP Australia</option>
+                                <option value="CA">加拿大 CIPO</option>
+                            </select>
+                            <p id="example" class="text-sm text-muted mt-2">示例：9876543、12345678</p>
+                        </div>
+                        
+                        <button 
+                            type="button" 
+                            onclick="goQuery()"
+                            class="w-full bg-gradient-to-r from-primary to-accent text-white font-bold py-4 px-6 rounded-lg hover:opacity-90 transition-opacity text-lg shadow-lg"
+                        >
+                            <i class="fa fa-search mr-2"></i>查询商标/专利状态
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 查询流程说明 -->
+                <div class="mb-10">
+                    <h3 class="font-bold text-xl mb-6 text-accent text-center">查询流程指引 📝</h3>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 card-hover relative overflow-hidden">
+                            <div class="absolute -right-6 -top-6 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                                <span class="font-bold text-primary transform rotate-45 translate-x-3 translate-y-1">1</span>
+                            </div>
+                            <h4 class="font-bold mb-3 text-lg">输入申请号</h4>
+                            <p class="text-muted leading-relaxed">
+                                请输入准确的商标或专利申请号，不同国家有不同的格式要求，可参考右侧示例。
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 card-hover relative overflow-hidden">
+                            <div class="absolute -right-6 -top-6 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                                <span class="font-bold text-primary transform rotate-45 translate-x-3 translate-y-1">2</span>
+                            </div>
+                            <h4 class="font-bold mb-3 text-lg">选择国家/地区</h4>
+                            <p class="text-muted leading-relaxed">
+                                根据您的需求选择对应的国家或地区，系统会自动匹配相应的官方数据库进行查询。
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 card-hover relative overflow-hidden">
+                            <div class="absolute -right-6 -top-6 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                                <span class="font-bold text-primary transform rotate-45 translate-x-3 translate-y-1">3</span>
+                            </div>
+                            <h4 class="font-bold mb-3 text-lg">获取查询结果</h4>
+                            <p class="text-muted leading-relaxed">
+                                点击查询按钮后，系统将实时获取并展示最新的商标/专利状态信息及详细内容。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 常见问题 -->
+                <div class="mt-10">
+                    <h3 class="font-bold text-xl mb-6 text-accent text-center">查询常见问题 ❓</h3>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="bg-blue-50 rounded-lg p-5 card-hover">
+                            <h4 class="font-bold mb-3 text-lg">查询失败怎么办？</h4>
+                            <p class="text-muted leading-relaxed">
+                                请确认申请号格式是否正确（不同国家格式不同），或联系我们的顾问协助查询（微信：CADMON2023）。
+                            </p>
+                        </div>
+                        <div class="bg-blue-50 rounded-lg p-5 card-hover">
+                            <h4 class="font-bold mb-3 text-lg">审查中是什么意思？</h4>
+                            <p class="text-muted leading-relaxed">
+                                表示商标/专利正在官方审核中，我们会全程跟进状态，如有更新会第一时间通知您。
+                            </p>
+                        </div>
+                        <div class="bg-blue-50 rounded-lg p-5 card-hover">
+                            <h4 class="font-bold mb-3 text-lg">支持其他国家查询吗？</h4>
+                            <p class="text-muted leading-relaxed">
+                                目前支持以上7个主流国家/地区，其他国家可联系我们提供专属查询服务。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 个人文章展示区块 -->
+        <section id="articles" class="content-section max-w-7xl mx-auto px-4 md:px-8 mb-16 animate-fade-in">
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-primary mb-8 text-center">个人文章展示 - 亚马逊商标专利版权汇总</h2>
+                
+                <div class="bg-blue-50 rounded-lg p-6 mb-8 text-center">
+                    <p class="font-medium text-lg mb-4">核心汇总文档：</p>
+                    <a 
+                        href="https://www.wearesellers.com/question/70603" 
+                        target="_blank"
+                        class="text-primary hover:underline text-lg flex items-center justify-center"
+                    >
+                        <i class="fa fa-external-link mr-2"></i>亚马逊品牌备案全流程解决方案
+                    </a>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="border border-gray-100 rounded-xl p-6 card-hover bg-white">
+                        <h3 class="font-bold text-xl mb-4 text-accent text-center">商标注册相关</h3>
+                        <ul class="space-y-4">
+                            <li class="p-3 bg-gray-50 rounded-lg">
+                                <a href="https://www.wearesellers.com/question/104400" target="_blank" class="text-primary hover:underline text-lg flex items-center">
+                                    <i class="fa fa-file-text-o mr-3 text-accent"></i>马德里体系商标申请详情
+                                </a>
+                            </li>
+                            <li class="p-3 bg-gray-50 rounded-lg">
+                                <a href="https://www.wearesellers.com/question/84348" target="_blank" class="text-primary hover:underline text-lg flex items-center">
+                                    <i class="fa fa-file-text-o mr-3 text-accent"></i>商标名称通过率检索步骤
+                                </a>
+                            </li>
+                            <li class="p-3 bg-gray-50 rounded-lg">
+                                <a href="https://www.wearesellers.com/question/90704" target="_blank" class="text-primary hover:underline text-lg flex items-center">
+                                    <i class="fa fa-file-text-o mr-3 text-accent"></i>美国商标状态查询（审核意见/五年宣誓）
+                                </a>
+                            </li>
+                            <li class="p-3 bg-gray-50 rounded-lg">
+                                <a href="https://www.wearesellers.com/question/102940" target="_blank" class="text-primary hover:underline text-lg flex items-center">
+                                    <i class="fa fa-file-text-o mr-3 text-accent"></i>常见国家商标/专利查询网址
+                                </a>
+                            </li>
+                            <li class="p-3 bg-gray-50 rounded-lg">
+                                <a href="https://www.wearesellers.com/question/70967" target="_blank" class="text-primary hover:underline text-lg flex items-center">
+                                    <i class="fa fa-file-text-o mr-3 text-accent"></i>5665白名单相关
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="border border-gray-100 rounded-xl p-6 card-hover bg-white">
+                        <h3 class="font-bold text-xl mb-4 text-accent text-center">其他重要文档</h3>
+                        <ul class="space-y-4">
+                            <li class="p-3 bg-gray-50 rounded-lg">
+                                <a href="https://www.wearesellers.com/question/112009" target="_blank" class="text-primary hover:underline text-lg flex items-center">
+                                    <i class="fa fa-file-text-o mr-3 text-accent"></i>美国商标疑难问答大全
+                                </a>
+                            </li>
+                            <li class="p-3 bg-gray-50 rounded-lg">
+                                <a href="https://www.wearesellers.com/question/69363" target="_blank" class="text-primary hover:underline text-lg flex items-center">
+                                    <i class="fa fa-file-text-o mr-3 text-accent"></i>备案资料模板
+                                </a>
+                            </li>
+                            <li class="p-3 bg-gray-50 rounded-lg">
+                                <a href="https://www.wearesellers.com/question/84965" target="_blank" class="text-primary hover:underline text-lg flex items-center">
+                                    <i class="fa fa-file-text-o mr-3 text-accent"></i>暴雷商标应对措施（旧版）
+                                </a>
+                            </li>
+                            <li class="p-3 bg-gray-50 rounded-lg">
+                                <a href="https://www.wearesellers.com/question/96825" target="_blank" class="text-primary hover:underline text-lg flex items-center">
+                                    <i class="fa fa-file-text-o mr-3 text-accent"></i>暴雷商标应对措施（新版）
+                                </a>
+                            </li>
+                            <li class="p-3 bg-gray-50 rounded-lg">
+                                <a href="https://mp.weixin.qq.com/s/beJ-2gXEIcTPZEqWQHgCSA" target="_blank" class="text-primary hover:underline text-lg flex items-center">
+                                    <i class="fa fa-weixin mr-3 text-accent"></i>2024亚马逊品牌备案最新步骤
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-10 p-6 bg-blue-50 rounded-xl">
+                    <h3 class="font-bold text-lg mb-4 text-center">文章内容说明</h3>
+                    <p class="text-muted leading-relaxed text-center text-lg">
+                        所有文章均为个人多年实操经验总结，涵盖亚马逊品牌备案、授权、专利侵权点分析、商标状态查询等全流程方法，
+                        内容在知无不言、小红书等平台同步更新，欢迎交流。
+                    </p>
+                    <div class="mt-6 flex flex-wrap justify-center gap-4">
+                        <div class="bg-white px-4 py-2 rounded-lg shadow-sm">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            <span class="font-medium">常见站点备案步骤</span>
+                        </div>
+                        <div class="bg-white px-4 py-2 rounded-lg shadow-sm">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            <span class="font-medium">美国商标五年宣誓</span>
+                        </div>
+                        <div class="bg-white px-4 py-2 rounded-lg shadow-sm">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            <span class="font-medium">马德里商标体系</span>
+                        </div>
+                        <div class="bg-white px-4 py-2 rounded-lg shadow-sm">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            <span class="font-medium">TRO知识点</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 服务介绍区块 -->
+        <section id="services" class="content-section max-w-7xl mx-auto px-4 md:px-8 mb-16 animate-fade-in">
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-primary mb-8 text-center">我们的服务</h2>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                    <div class="border border-gray-100 rounded-xl p-6 card-hover bg-white shadow-sm">
+                        <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                            <i class="fa fa-trademark text-primary text-3xl"></i>
+                        </div>
+                        <h3 class="font-bold text-xl mb-4 text-center">全球商标业务</h3>
+                        <ul class="text-base space-y-2 text-muted text-center">
+                            <li>✓ 商标申请注册</li>
+                            <li>✓ 商标转让/地址变更</li>
+                            <li>✓ 五年宣誓/续展</li>
+                            <li>✓ 异议/无效宣告</li>
+                            <li>✓ 商标买卖交易</li>
+                        </ul>
+                    </div>
+                    <div class="border border-gray-100 rounded-xl p-6 card-hover bg-white shadow-sm">
+                        <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                            <i class="fa fa-copyright text-primary text-3xl"></i>
+                        </div>
+                        <h3 class="font-bold text-xl mb-4 text-center">专利/版权业务</h3>
+                        <ul class="text-base space-y-2 text-muted text-center">
+                            <li>✓ 外观/发明专利申请</li>
+                            <li>✓ 版权登记保护</li>
+                            <li>✓ 不侵权报告出具</li>
+                            <li>✓ 专利转让/换律师</li>
+                            <li>✓ 侵权投诉处理</li>
+                        </ul>
+                    </div>
+                    <div class="border border-gray-100 rounded-xl p-6 card-hover bg-white shadow-sm">
+                        <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                            <i class="fa fa-gavel text-primary text-3xl"></i>
+                        </div>
+                        <h3 class="font-bold text-xl mb-4 text-center">美国TRO业务</h3>
+                        <ul class="text-base space-y-2 text-muted text-center">
+                            <li>✓ TRO发起申请</li>
+                            <li>✓ TRO应诉抗辩</li>
+                            <li>✓ 和解谈判协商</li>
+                            <li>✓ 侵权风险评估</li>
+                            <li>✓ 法律支持服务</li>
+                        </ul>
+                    </div>
+                    <div class="border border-gray-100 rounded-xl p-6 card-hover bg-white shadow-sm">
+                        <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                            <i class="fa fa-building text-primary text-3xl"></i>
+                        </div>
+                        <h3 class="font-bold text-xl mb-4 text-center">公司注册业务</h3>
+                        <ul class="text-base space-y-2 text-muted text-center">
+                            <li>✓ 香港公司注册</li>
+                            <li>✓ 英国公司注册</li>
+                            <li>✓ 公司维护管理</li>
+                            <li>✓ 银行账户协助</li>
+                            <li>✓ 税务申报咨询</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-10 bg-blue-50 rounded-xl p-8">
+                    <h3 class="font-bold text-2xl mb-8 text-center">5C级服务标准</h3>
+                    <div class="grid md:grid-cols-3 lg:grid-cols-6 gap-6">
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                                <span class="font-bold text-primary text-xl">1</span>
+                            </div>
+                            <p class="font-medium text-lg">精准查询分析</p>
+                            <p class="text-sm text-muted mt-2">提高注册成功率</p>
+                        </div>
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                                <span class="font-bold text-primary text-xl">2</span>
+                            </div>
+                            <p class="font-medium text-lg">48小时快速申报</p>
+                            <p class="text-sm text-muted mt-2">节省宝贵时间</p>
+                        </div>
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                                <span class="font-bold text-primary text-xl">3</span>
+                            </div>
+                            <p class="font-medium text-lg">全程跟进提醒</p>
+                            <p class="text-sm text-muted mt-2">售后无忧</p>
+                        </div>
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                                <span class="font-bold text-primary text-xl">4</span>
+                            </div>
+                            <p class="font-medium text-lg">安全快递</p>
+                            <p class="text-sm text-muted mt-2">文件安全到手</p>
+                        </div>
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                                <span class="font-bold text-primary text-xl">5</span>
+                            </div>
+                            <p class="font-medium text-lg">全程保密</p>
+                            <p class="text-sm text-muted mt-2">法律担保</p>
+                        </div>
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                                <span class="font-bold text-primary text-xl">6</span>
+                            </div>
+                            <p class="font-medium text-lg">附加值提供</p>
+                            <p class="text-sm text-muted mt-2">更多好处</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+<!-- 整合后的了解我区块 -->
+<section id="about" class="content-section max-w-7xl mx-auto px-4 md:px-8 mb-16 animate-fade-in">
+    <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+        <!-- 标题统一 -->
+<h2 class="text-2xl md:text-3xl font-bold text-primary mb-8 text-center animate-zoom-in">
+    关于我 - Yuki 👤
+</h2>
+
+        
+        <!-- 个人信息与简介（左侧头像+右侧核心信息） -->
+        <div class="grid md:grid-cols-2 gap-8 items-center mb-10">
+            <!-- 左侧头像区域 -->
+            <div class="animate-slide-up">
+                <div class="relative">
+                    <img src="个人介绍/头像.jpg" alt="个人介绍" class="w-full rounded-xl shadow-md card-hover cursor-zoom" onclick="openImgModal(this.src)" />
+                    <!-- 增加经验标识 -->
+                    <div class="absolute -bottom-4 -right-4 bg-primary text-white rounded-xl p-4 shadow-lg animate-float">
+                        <div class="font-bold text-xl">10+</div>
+                        <div class="text-sm">行业经验</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧个人简介与核心优势 -->
+            <div class="animate-slide-up delay-100 space-y-6">
+                <!-- 个人简介整合 -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center animate-float">
+                            <i class="fa fa-user-circle text-primary text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-xl text-accent">凯德盟资深知识产权顾问</h3>
+                    </div>
+                    <p class="leading-relaxed mb-3">
+                        深耕涉外知识产权行业10+年，专注亚马逊品牌备案、全球商标/专利申请、TRO应诉等领域，
+                        累计服务跨境电商客户超10000+，擅长解决各类知识产权疑难问题，尤其精通美国/欧盟/英国等主流国家商标专利业务。
+                    </p>
+                    <!-- 个人成就列表 -->
+                    <ul class="list-disc list-inside text-base space-y-1 ml-2 mb-3">
+                        <li>📚 累计帮助2000+企业完成全球知识产权布局</li>
+                        <li>🏆 擅长解决各类商标疑难问题，下证率98%</li>
+                        <li>💡 提供1对1专属咨询，免费商标查询分析</li>
+                        <li>📞 随时为您解答知识产权相关疑问</li>
+                    </ul>
+                </div>
+
+<!-- 关于我 - 成功案例视频 -->
+<div class="mt-10">
+    <h3 class="text-xl font-bold text-accent text-center mb-4">成功案例视频 🎬</h3>
+
+    <div class="flex justify-center">
+        <div 
+            class="relative rounded-xl overflow-hidden shadow-lg w-full max-w-md md:max-w-lg lg:max-w-xl cursor-pointer transition transform duration-300 hover:scale-[1.02]"
+            onclick="window.open('你的视频链接', '_blank')"
+        >
+            <img 
+                src="视频封面/你的视频封面.jpg" 
+                alt="成功案例视频" 
+                class="w-full h-auto object-cover"
+            >
+            <div class="absolute inset-0 flex items-center justify-center bg-black/30">
+                <i class="fa fa-play-circle text-white text-6xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <p class="mt-2 text-center font-medium">某客户成功案例展示</p>
+</div>
+
+                
+                <!-- 核心优势（保留详细列表） -->
+                <div class="bg-blue-50 rounded-lg p-6">
+                    <h3 class="font-bold text-xl mb-4 text-accent">核心优势 ✨</h3>
+                    <ul class="space-y-3 text-lg">
+                        <li class="flex items-start gap-3">
+                            <i class="fa fa-check-circle text-green-500 mt-1"></i>
+                            <span>10年+实操经验，熟悉各平台规则和各国知识产权法规</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa fa-check-circle text-green-500 mt-1"></i>
+                            <span>一对一专属服务，全程跟进，拒绝模板化回复</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa fa-check-circle text-green-500 mt-1"></i>
+                            <span>擅长解决备案失败、TRO应诉、商标驳回等疑难问题</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa fa-check-circle text-green-500 mt-1"></i>
+                            <span>知无不言/小红书等平台资深分享者，内容干货满满</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 专业领域与服务理念 -->
+        <div class="bg-blue-50 rounded-xl p-6 mb-10">
+            <h3 class="font-bold text-xl mb-6 text-accent">我的专业领域与理念</h3>
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- 专业领域 -->
+                <div>
+                    <h4 class="font-bold text-lg mb-3">专业领域</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex items-start gap-3">
+                            <div class="mt-1 text-primary"><i class="fa fa-check-circle"></i></div>
+                            <div>亚马逊全球站点品牌备案</div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="mt-1 text-primary"><i class="fa fa-check-circle"></i></div>
+                            <div>国际商标注册与布局</div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="mt-1 text-primary"><i class="fa fa-check-circle"></i></div>
+                            <div>专利申请与侵权分析</div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="mt-1 text-primary"><i class="fa fa-check-circle"></i></div>
+                            <div>知识产权纠纷应对</div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="mt-1 text-primary"><i class="fa fa-check-circle"></i></div>
+                            <div>TRO应诉与和解谈判</div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="mt-1 text-primary"><i class="fa fa-check-circle"></i></div>
+                            <div>全球公司注册服务</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 服务理念 -->
+                <div>
+                    <h4 class="font-bold text-lg mb-3">服务理念</h4>
+                    <p class="text-lg leading-relaxed">
+                        知识产权是企业出海的重要保障，我始终坚持"专业、诚信、高效"的服务理念，
+                        致力于为每一位客户提供量身定制的知识产权解决方案，帮助中国企业在全球市场
+                        建立和保护自己的品牌价值。
+                    </p>
+                    <!-- 快捷联系方式 -->
+
+<div class="flex flex-col items-center gap-2">
+    <span class="font-bold text-white bg-green-500 py-2 px-4 rounded-lg">微信沟通</span>
+    <img src="wechat_qr.png" alt="微信二维码" class="w-36 h-36 mt-2 rounded-lg shadow-lg">
+</div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+                <!-- 新增：个人成功案例图（放在“了解我”页面） -->
+                <div class="mt-12">
+                    <h3 class="font-bold text-xl mb-6 text-accent text-center">个人成功案例展示</h3>
+                    <div class="relative">
+                        <div class="scroll-indicator left" onclick="scrollContainer('personalCaseImages', -300)">
+                            <i class="fa fa-chevron-left text-primary"></i>
+                        </div>
+                        <div class="scroll-indicator right" onclick="scrollContainer('personalCaseImages', 300)">
+                            <i class="fa fa-chevron-right text-primary"></i>
+                        </div>
+                        <div id="personalCaseImages" class="scroll-container pb-2">
+                            <div class="flex gap-4 min-w-max">
+                                <div class="case-item rounded-xl overflow-hidden shadow-md w-72 card-hover">
+                                    <img src="个人案例/1.jpg" alt="个人案例1" class="w-full h-48 object-cover cursor-zoom" onclick="openImgModal(this.src)" />
+                                    <div class="p-3 text-center font-medium">亚马逊品牌备案案例</div>
+                                </div>
+                                <div class="case-item rounded-xl overflow-hidden shadow-md w-72 card-hover">
+                                    <img src="个人案例/2.jpg" alt="个人案例2" class="w-full h-48 object-cover cursor-zoom" onclick="openImgModal(this.src)" />
+                                    <div class="p-3 text-center font-medium">美国商标下证案例</div>
+                                </div>
+                                <div class="case-item rounded-xl overflow-hidden shadow-md w-72 card-hover">
+                                    <img src="个人案例/3.jpg" alt="个人案例3" class="w-full h-48 object-cover cursor-zoom" onclick="openImgModal(this.src)" />
+                                    <div class="p-3 text-center font-medium">TRO应诉和解案例</div>
+                                </div>
+                                <div class="case-item rounded-xl overflow-hidden shadow-md w-72 card-hover">
+                                    <img src="个人案例/4.jpg" alt="个人案例4" class="w-full h-48 object-cover cursor-zoom" onclick="openImgModal(this.src)" />
+                                    <div class="p-3 text-center font-medium">马德里商标覆盖案例</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-muted mt-2 text-center animate-pulse-light">→ 滑动或点击箭头查看更多个人成功案例 ←</p>
+                </div>
+
+                <div class="bg-blue-50 rounded-xl p-8 mt-8">
+                    <h3 class="font-bold text-2xl mb-6 text-center">联系方式</h3>
+                    <div class="grid md:grid-cols-3 gap-6 text-center">
+                        <div class="bg-white p-6 rounded-lg shadow-sm card-hover">
+                            <i class="fa fa-weixin text-4xl text-green-500 mb-4"></i>
+                            <p class="font-bold text-lg">微信</p>
+                            <p class="text-muted text-lg mt-2">CADMON2023 / CADMON456</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-sm card-hover">
+                            <i class="fa fa-qq text-4xl text-blue-500 mb-4"></i>
+                            <p class="font-bold text-lg">QQ</p>
+                            <p class="text-muted text-lg mt-2">3450292745</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-sm card-hover">
+                            <i class="fa fa-envelope text-4xl text-red-500 mb-4"></i>
+                            <p class="font-bold text-lg">邮箱</p>
+                            <p class="text-muted text-lg mt-2">qli021833@gmail.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. 新增：常见问题解答区块 -->
+        <section id="faq" class="content-section max-w-7xl mx-auto px-4 md:px-8 mb-16 animate-fade-in">
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-primary mb-8 text-center">常见问题解答</h2>
+                
+                <div class="max-w-3xl mx-auto">
+                    <!-- 问题1 -->
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>1. 商标注册需要准备哪些材料？</span>
+                            <i class="fa fa-minus text-primary"></i>
+                        </div>
+                        <div class="faq-answer active">
+                            <p class="text-muted leading-relaxed">
+                                基础材料包括：<br>
+                                • 申请人身份证明（企业提供营业执照，个人提供身份证）<br>
+                                • 商标标样（清晰的LOGO图片，JPG/PNG格式）<br>
+                                • 商品/服务项目清单（需符合尼斯分类）<br>
+                                • 委托书（即代理委托书）<br>
+                                不同国家可能有额外要求：• 美国：需提供使用证据或意向使用声明 • 欧盟：无额外材料，基础材料即可 • 马德里体系：需国内商标申请/注册证明<br>
+                                我们会根据具体国家提供详细材料清单，并协助整理审核。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 问题2 -->
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>2. 商标注册周期是多久？</span>
+                            <i class="fa fa-plus text-primary"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p class="text-muted leading-relaxed">
+                                不同国家/地区注册周期不同：<br>
+                                • 美国：8-12个月<br>
+                                • 欧盟：4-6个月<br>
+                                • 英国：3-4个月<br>
+                                • 日本：6-8个月<br>
+                                • 马德里体系：12-18个月（视指定国家审查速度）<br>
+                                注：以上为顺利下证的周期，若遇到审查意见/异议，周期会相应延长。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 问题3 -->
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>3. 商标注册成功率是多少？如何提高成功率？</span>
+                            <i class="fa fa-plus text-primary"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p class="text-muted leading-relaxed">
+                                凯德盟平均下证率为97%，提高成功率的方法：<br>
+                                1. 注册前做精准的商标检索，避开相同/近似商标；<br>
+                                2. 商标标样避免使用通用词、描述性词汇；<br>
+                                3. 选择专业代理机构，提前规避驳回风险；<br>
+                                4. 若收到审查意见，及时专业答辩。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 问题4 -->
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>4. 亚马逊品牌备案需要什么条件？备案失败怎么办？</span>
+                            <i class="fa fa-plus text-primary"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p class="text-muted leading-relaxed">
+                                备案条件：<br>
+                                • 拥有已注册的商标（R标）或受理中的商标（TM标，部分站点支持）；<br>
+                                • 商标标样需与产品包装/Listing一致；<br>
+                                • 拥有对应的亚马逊店铺。<br>
+                                备案失败解决方法：<br>
+                                1. 检查商标信息与店铺信息是否一致；<br>
+                                2. 补充商标使用证据（如产品图片、包装图）；<br>
+                                3. 联系亚马逊品牌支持团队申诉；<br>
+                                4. 委托专业代理机构协助处理（凯德盟可提供备案代操作服务）。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 问题5 -->
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>5. 商标注册后需要注意什么？有哪些维护义务？</span>
+                            <i class="fa fa-plus text-primary"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p class="text-muted leading-relaxed">
+                                注意事项及维护义务：<br>
+                                1. 及时使用商标：避免“撤三”风险（如美国3年未使用可能被撤销）；<br>
+                                2. 按时续展：商标有效期通常为10年，需提前6-12个月续展；<br>
+                                3. 美国商标需做“五年宣誓”：注册后5-6年需提交使用证据；<br>
+                                4. 监控商标状态：及时处理异议、无效宣告等风险；<br>
+                                5. 变更信息需备案：如申请人地址/名称变更，需及时办理商标变更。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 问题6 -->
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>6. 遇到TRO投诉/侵权指控该怎么办？</span>
+                            <i class="fa fa-plus text-primary"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p class="text-muted leading-relaxed">
+                                应对步骤：<br>
+                                1. 立即停止销售被控侵权产品，避免损失扩大；<br>
+                                2. 收集证据：确认是否真的侵权（对比商标/专利信息）；<br>
+                                3. 联系专业知识产权律师/代理机构（如凯德盟）评估风险；<br>
+                                4. 选择应对方式：<br>
+                                   • 若侵权成立：协商和解、支付赔偿金；<br>
+                                   • 若不侵权：提交不侵权证据应诉；<br>
+                                5. 后续预防：完善知识产权布局，避免再次侵权。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 问题7 -->
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>7. 专利申请与商标注册有什么区别？</span>
+                            <i class="fa fa-plus text-primary"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p class="text-muted leading-relaxed">
+                                核心区别：<br>
+                                • 保护对象不同：商标保护“品牌标识”（如LOGO、名称）；专利保护“技术/设计方案”（如产品外观、发明技术）；<br>
+                                • 保护期限不同：商标可无限续展（每10年续展一次）；专利有固定期限（外观专利15年，发明专利20年）；<br>
+                                • 申请条件不同：商标需具有“显著性”；专利需具有“新颖性、创造性、实用性”；<br>
+                                • 作用不同：商标用于区分商品/服务来源；专利用于保护技术创新，防止他人抄袭。
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 问题8 -->
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>8. 选择凯德盟服务有哪些保障？</span>
+                            <i class="fa fa-plus text-primary"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p class="text-muted leading-relaxed">
+                                凯德盟服务保障：<br>
+                                1. 15年行业经验，97%下证率保障；<br>
+                                2. 一对一专属顾问，全程跟进服务；<br>
+                                3. 无隐形消费，价格透明；<br>
+                                4. 全程保密协议，保护客户信息；<br>
+                                5. 失败退款承诺（部分服务）；<br>
+                                6. 线下实体公司，支持上门考察；<br>
+                                7. 售后终身跟进，提供商标/专利维护提醒。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-10 text-center bg-blue-50 rounded-xl p-6">
+                    <h3 class="font-bold text-lg mb-4">还有其他问题？</h3>
+                    <p class="text-muted leading-relaxed mb-6">如您有其他未解答的问题，可随时联系我们的专业顾问</p>
+                    <a href="#about" class="inline-block bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-accent transition-colors">
+                        <i class="fa fa-weixin mr-2"></i>联系顾问
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-10">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h3 class="font-bold text-xl mb-4 border-b border-gray-700 pb-2">服务</h3>
+                    <ul class="space-y-2 text-gray-300 text-sm leading-relaxed">
+                        <li>全球商标业务：申请、转让、地址变更、五年宣誓、续展、异议、无效宣告、商标买卖等</li>
+                        <li>全球专利/版权业务：申请、不侵权报告、转让、换律师、投诉等</li>
+                        <li>美国 TRO 业务：发起、应诉、和解等</li>
+                        <li>公司注册业务：香港、英国等地区公司注册</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-xl mb-4 border-b border-gray-700 pb-2">联系方式</h3>
+                    <ul class="space-y-3 text-gray-300">
+                        <li class="flex items-center gap-2">
+                            <i class="fa fa-weixin text-xl"></i>
+                            <span>CADMON2023 或 CADMON456</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa fa-qq text-xl"></i>
+                            <span>3450292745</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa fa-envelope text-xl"></i>
+                            <span>qli021833@gmail.com</span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-xl mb-4 border-b border-gray-700 pb-2">社交平台</h3>
+                    <ul class="space-y-3 text-gray-300">
+                        <li class="flex items-center gap-2">
+                            <i class="fa fa-weixin text-xl"></i>
+                            <span>公众号：如何不上班也有钱</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa fa-globe text-xl"></i>
+                            <span>知无不言：商标专利版权yuki</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa fa-book text-xl"></i>
+                            <span>小红书：CADMON2023 / CADMON456</span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-xl mb-4 border-b border-gray-700 pb-2">微信二维码</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <img src="二维码/1.jpg" alt="微信二维码1" class="w-full rounded-lg cursor-zoom" onclick="openImgModal(this.src)" />
+                        <img src="二维码/2.jpg" alt="微信二维码2" class="w-full rounded-lg cursor-zoom" onclick="openImgModal(this.src)" />
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-6 text-center text-gray-400 text-sm">
+                <p>© 2025 凯德盟（CADMON）- 专业涉外知识产权服务 | 粤ICP备XXXXXXX号</p>
+                <p class="mt-2">10年老品牌 · 全程保密 · 安全保障</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 回到顶部按钮 -->
+    <button id="backToTop" class="fixed bottom-6 right-6 bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg hover:bg-accent transition-colors opacity-0 invisible z-40">
+        <i class="fa fa-chevron-up"></i>
+    </button>
+
+    <!-- 核心交互JS -->
+    <script>
+        // ========== 基础功能 ==========
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            menuBtn.innerHTML = mobileMenu.classList.contains('hidden') 
+                ? '<i class="fa fa-bars"></i>' 
+                : '<i class="fa fa-times"></i>';
+        });
+
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            backToTopBtn.classList.toggle('opacity-100', window.scrollY > 300);
+            backToTopBtn.classList.toggle('invisible', window.scrollY <= 300);
+        });
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!menuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.add('hidden');
+                menuBtn.innerHTML = '<i class="fa fa-bars"></i>';
+            }
+        });
+
+        // ========== 图片放大功能（新增） ==========
+        const imgModal = document.getElementById('imgModal');
+        const modalImg = document.getElementById('modalImg');
+        
+        // 打开放大弹窗
+        function openImgModal(src) {
+            modalImg.src = src;
+            imgModal.classList.add('active');
+            // 禁止页面滚动
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // 点击弹窗关闭
+        imgModal.addEventListener('click', () => {
+            imgModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+
+        // ========== 图片滑动函数 ==========
+        function scrollContainer(containerId, distance) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.scrollBy({
+                    left: distance,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        // ========== 常见问题折叠面板（新增） ==========
+        function toggleFaq(element) {
+            const answer = element.nextElementSibling;
+            const icon = element.querySelector('i');
+            
+            answer.classList.toggle('active');
+            icon.classList.toggle('fa-plus');
+            icon.classList.toggle('fa-minus');
+        }
+
+        // ========== 单页切换逻辑 ==========
+        function switchSection(targetId) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+                section.style.display = 'none';
+            });
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                targetSection.style.display = 'block';
+            }
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('text-primary', 'border-b-2', 'border-primary');
+                link.classList.add('hover:text-primary');
+            });
+            document.querySelectorAll('.mobile-nav-link').forEach(link => {
+                link.classList.remove('text-primary');
+                link.classList.add('hover:text-primary');
+            });
+            const activeNav = document.querySelector(`.nav-link[href="#${targetId}"]`);
+            const activeMobileNav = document.querySelector(`.mobile-nav-link[href="#${targetId}"]`);
+            if (activeNav) {
+                activeNav.classList.add('text-primary', 'border-b-2', 'border-primary');
+                activeNav.classList.remove('hover:text-primary');
+            }
+            if (activeMobileNav) {
+                activeMobileNav.classList.add('text-primary');
+                activeMobileNav.classList.remove('hover:text-primary');
+            }
+            window.scrollTo({
+                top: targetSection.offsetTop - 100,
+                behavior: 'smooth'
+            });
+        }
+
+        document.querySelectorAll('.nav-link, .mobile-nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').replace('#', '');
+                switchSection(targetId);
+                mobileMenu.classList.add('hidden');
+                menuBtn.innerHTML = '<i class="fa fa-bars"></i>';
+            });
+        });
+
+        switchSection('home');
+
+        // ========== 查询功能 ==========
+        const examples = {
+            "US": "示例：9876543、12345678",
+            "EU": "示例：012345678",
+            "GB": "示例：UK00001234567、WO0000000123456",
+            "DE": "示例：302020123456、30123456",
+            "JP": "示例：1234567、2020-123456",
+            "AU": "示例：1234567、123456",
+            "CA": "示例：1234567"
+        };
+        function showExample() {
+            document.getElementById('example').innerText = examples[document.getElementById('country').value] || '';
+        }
+
+        function goQuery() {
+            const no = document.getElementById('number').value.trim();
+            const country = document.getElementById('country').value;
+            if (!no) { 
+                alert('请输入商标/专利申请号'); 
+                return; 
+            }
+            let url = '#';
+            switch(country) {
+                case 'US': url = `https://tsdr.uspto.gov/#caseNumber=${encodeURIComponent(no)}&caseSearchType=US_APPLICATION&caseType=SERIAL_NO&searchType=statusSearch`; break;
+                case 'EU': url = `https://euipo.europa.eu/eSearch/#details/trademarks/${encodeURIComponent(no)}`; break;
+                case 'GB': url = `https://trademarks.ipo.gov.uk/ipo-tmcase/page/Results/1/${encodeURIComponent(no)}`; break;
+                case 'DE': url = `https://register.dpma.de/DPMAregister/marke/register/${encodeURIComponent(no)}/DE`; break;
+                case 'JP': url = `https://www.j-platpat.inpit.go.jp/c1801/TR/JP-${encodeURIComponent(no)}/40/ja`; break;
+                case 'AU': url = `https://search.ipaustralia.gov.au/trademarks/search/view/${encodeURIComponent(no)}`; break;
+                case 'CA': url = `https://ised-isde.canada.ca/cipo/trademark-search/${encodeURIComponent(no)}`; break;
+            }
+            window.open(url, '_blank');
+        }
+
+        showExample();
+    </script>
+</body>
+</html>
